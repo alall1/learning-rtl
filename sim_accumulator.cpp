@@ -42,11 +42,16 @@ int main(int argc, char** argv) {
         int A = rand_num_16();
         top->A = A;
 
-        // calculating reference
+        // incrementing rolling sum
         sum = A + sum;
-        int exp_S = sum & 0x3F;
-        int exp_overflow = (sum > 31) ? 1 : 0;
 
+        // ticking so that S in the accumulator is equal to reference sum
+        tick();
+
+        // calculating reference
+        int exp_S = sum & 0x3F;
+        int exp_overflow = (sum > 63) ? 1 : 0;
+        
         // comparing & writing
         if (top->S != exp_S || top->overflow != exp_overflow) {
             printf("ERROR: A=%d; got S=%d ovfl=%d; expected S=%d ovfl=%d\n",
@@ -59,8 +64,27 @@ int main(int argc, char** argv) {
     };
 
     // === testing ===
+
+    // set rst high for 1 tick to reset accumulator
+    top->rst = 1;
+    tick();
+    top->rst = 0;
+
+    // looping through adding 10 random numbers between 0 and 16 to the rolling sum
     for (int i = 0; i < 10; i++) {
-        tick();
+        testaccumulate(rolling_sum);
+    }
+
+    // set rst high for 1 tick to reset accumulator (just to fully test reset working this time)
+    top->rst = 1;
+    tick();
+    top->rst = 0;
+
+    // also resetting the reference rolling sum
+    rolling_sum = 0;
+
+    // looping through adding 20 random numbers to test overflow
+    for (int i = 0; i < 20; i++) {
         testaccumulate(rolling_sum);
     }
 
