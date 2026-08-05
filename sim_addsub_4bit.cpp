@@ -49,14 +49,16 @@ int main(int argc, char** argv) {
             exp_ovfl = 0;
         }
 
+        int real_sum = ((int8_t)(top->S << 4)) >> 4;
+
         // comparing & writing
-        if (top->S != exp_S || top->ovfl != exp_ovfl) {
+        if (real_sum != exp_S || top->ovfl != exp_ovfl) {     // C++ seems to be sign-extending the negative numbers: 1000 (-8) -> 11111000 (248) but ONLY for top->A and top->B; top->S is being read as an unsigned int
             printf("ERROR: A=%d B=%d; got S=%d ovfl=%d; expected S=%d ovfl=%d\n",
-                    top->A, top->B, top->S, top->ovfl, exp_S, exp_ovfl);
+                    A, B, real_sum, top->ovfl, exp_S, exp_ovfl);  // SOLVED: issue was that Verilator gives each [3:0] port a uint8_t storage
             errors++;
         } else {
             printf("OK: A=%d B=%d; got S=%d ovfl=%d\n",
-                    top->A, top->B, top->S, top->ovfl);
+                    A, B, real_sum, top->ovfl);
         }
     };
 
