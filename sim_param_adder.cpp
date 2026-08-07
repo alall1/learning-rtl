@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 
         // comparing & writing
         if (top->S != exp_S || top->ovfl != exp_ovfl) {
-            printf("ERROR: A=%d B=%d; got S=%x ovfl=%d; expected S=%b ovfl=%d\n",
+            printf("ERROR: A=%d B=%d; got S=%x ovfl=%d; expected S=%x ovfl=%d\n",
                     A, B, top->S, top->ovfl, exp_S, exp_ovfl);
             errors++;
         } else {
@@ -61,10 +61,10 @@ int main(int argc, char** argv) {
     };
 
     // === testing ===
-    testsum(15, 10, 6);     // no overflow, positive
-    testsum(-23, -5, 6);    // no overflow, negative
-    testsum(15, 17, 6);     // positive overflow
-    testsum(-15, -18, 6);     // negative overflow
+    testsum(510, 1, 31);     // no overflow, positive
+    testsum(-500, -5, 31);    // no overflow, negative
+    testsum(2147483647, 4, 31);     // positive overflow
+    testsum(-2147483647, -13, 31);     // negative overflow
 
     tfp->dump(sim_time++); // taking an extra sample so the last case has visible width
 
