@@ -36,17 +36,20 @@ int main(int argc, char** argv) {
         int exp_ovfl;
 
         unsigned int mask = (1 << width) - 1;   // creating a mask of 1s to match width variable
-        unsigned int exp_S = sum & mask;        // bitwise AND between the calculated sum and the mask to get the EXACT expected S output bits; however, C++'s int is unsigned
+        unsigned int exp_S;        // bitwise AND between the calculated sum and the mask to get the EXACT expected S output bits; however, C++'s int is unsigned
 
         int max_pos = (1 << (width-1)) - 1;
         int max_neg = -(1 << (width-1));
         
         if (sum > max_pos) {            // overflowing positively
             exp_ovfl = 1;
+            exp_S = max_pos & mask;
         } else if (sum < max_neg) {     // overflowing negatively
             exp_ovfl = 1;
+            exp_S = max_neg & mask;
         } else {                        // no overflow
             exp_ovfl = 0;
+            exp_S = sum & mask;
         }
 
         // comparing & writing
@@ -61,10 +64,10 @@ int main(int argc, char** argv) {
     };
 
     // === testing ===
-    testsum(0, 1, 32);     // no overflow, positive
-    testsum(-1, -5, 32);    // no overflow, negative
-    testsum(2147483648, 1, 32);     // positive overflow; 30 bit - 536870911; 31 bit - 1073741823; 32 bit: 2147483648
-    testsum(-2147483649, -1, 32);     // negative overflow
+    testsum(0, 1, 10);     // no overflow, positive
+    testsum(-1, -5, 10);    // no overflow, negative
+    testsum(511, 1, 10);     // positive overflow; 30 bit - 536870911; 31 bit - 1073741823; 32 bit - 2147483648
+    testsum(-512, -1, 10);     // negative overflow
 
     tfp->dump(sim_time++); // taking an extra sample so the last case has visible width
 
