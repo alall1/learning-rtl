@@ -61,10 +61,10 @@ int main(int argc, char** argv) {
     };
 
     // === testing ===
-    testsum(510, 1, 31);     // no overflow, positive
-    testsum(-500, -5, 31);    // no overflow, negative
-    testsum(2147483647, 4, 31);     // positive overflow
-    testsum(-2147483647, -13, 31);     // negative overflow
+    testsum(0, 1, 32);     // no overflow, positive
+    testsum(-1, -5, 32);    // no overflow, negative
+    testsum(2147483648, 1, 32);     // positive overflow; 30 bit - 536870911; 31 bit - 1073741823; 32 bit: 2147483648
+    testsum(-2147483649, -1, 32);     // negative overflow
 
     tfp->dump(sim_time++); // taking an extra sample so the last case has visible width
 
