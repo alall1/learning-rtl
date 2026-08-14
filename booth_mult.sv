@@ -13,7 +13,7 @@ logic [3:0] Qr;             // Qr, starts as multiplier Q inside of r
 logic Qlast;                // Qlast, the Q(-1) bit, or the last bit before Q was arithmetically shifted right
 logic signed [3:0] Mneg;    // -M
 
-logic [1:0] count;  // count of the clock cycles (0, 1, 2, 3)
+logic [2:0] count;  // count of the clock cycles (0, 1, 2, 3, 4)
 
 assign Mneg = -M;   // setting Mneg = -M, would already become signed but already declared as a signed bus
 
@@ -22,8 +22,8 @@ always_comb begin
     Qlast = r[0];
     case (r[1:0])       // different cases for Qlsb and Qlast
         2'b00, 2'b11: acc = r[8:5];     // only ARS, registers retain values (gets ARS in always_ff)
-        2'b01: acc = r[8:5] + Mneg;     // acc = acc + (-M); could have just done acc = acc - M but Mneg to closer match the logic I am implementing
-        2'b10: acc = r[8:5] + M;        // acc = acc + M;
+        2'b01: acc = r[8:5] + M;        // acc = acc + (-M); could have just done acc = acc - M but Mneg to closer match the logic I am implementing
+        2'b10: acc = r[8:5] + Mneg;     // acc = acc + M;
         default: acc = 4'b0000;         // default case, if r = XXX (Verilator doesn't simulate this)
     endcase
 end
@@ -31,9 +31,9 @@ end
 always_ff @(posedge clk) begin
     if (rst) begin
         r <= {4'b0000, Q, 1'b0};
-        count <= 2'b00;
+        count <= 3'b000;
         done <= 1'b0;
-    end else if (count == 2'b11) begin       // count is maxed, stops operations
+    end else if (count == 3'b100) begin       // count is maxed, stops operations
         done <= 1'b1;
     end else begin
         r <= $signed({acc, r[4:0]}) >>> 1;    // update r with new acc, Q, Qlast, arithmetic shifted right, because ARS happens at the end of every case

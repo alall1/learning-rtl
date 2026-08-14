@@ -70,9 +70,19 @@ int main(int argc, char** argv) {
 
     // === testing ===
 
+    for (int i = -8; i < 8; i++) {
+        for (int j = -8; j < 8; j++) {
+            testmult(i, j);
+        }
+    }
+    /*
+    testmult(rand_sign_4bit(), rand_sign_4bit());
+    testmult(rand_sign_4bit(), rand_sign_4bit());
+    tick();     // testing if "count" works, doesn't do any ops after mult finishes
     testmult(rand_sign_4bit(), rand_sign_4bit());
     testmult(rand_sign_4bit(), rand_sign_4bit());
     testmult(rand_sign_4bit(), rand_sign_4bit());
+    */
 
     tfp->dump(sim_time++); // taking an extra sample so the last case has visible width
 
