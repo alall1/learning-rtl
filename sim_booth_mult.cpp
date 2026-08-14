@@ -39,8 +39,8 @@ int main(int argc, char** argv) {
 
     auto testmult = [&](int A, int B) {
         // set inputs
-        top->M = A;
-        top->Q = B;
+        top->M = A & 0xF;
+        top->Q = B & 0xF;
 
         // reset (to clean up testing code, and so "r" picks up the real Q instead of the pre-reset Q)
         top->rst = 1;
@@ -59,22 +59,28 @@ int main(int argc, char** argv) {
         
         // comparing & writing
         if (top->P != exp_P) {
-            printf("ERROR: A=%d B=%d; got P=%d ; expected P=%d real P=%d\n",
+            printf("ERROR: M=%d Q=%d; got P=%d ; expected P=%d real P=%d\n",
                     A, B, top->P, exp_P, real_P);
             errors++;
         } else {
-            printf("OK: A=%d B=%d; got P=%d\n",
+            printf("OK: M=%d Q=%d; got P=%d\n",
                     A, B, top->P);
         }
     };
 
     // === testing ===
 
+    testmult(-5, -8);
+    tick();
+
+    // /*
     for (int i = -8; i < 8; i++) {
         for (int j = -8; j < 8; j++) {
             testmult(i, j);
         }
     }
+    // */
+    
     /*
     testmult(rand_sign_4bit(), rand_sign_4bit());
     testmult(rand_sign_4bit(), rand_sign_4bit());

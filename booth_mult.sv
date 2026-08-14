@@ -1,14 +1,13 @@
 module booth_mult (
     input logic clk,
     input logic rst,
-    input logic signed [3:0] M,
-    input logic signed [3:0] Q,
-    output logic signed [7:0] P,
-    output logic done
+    input logic [3:0] M,
+    input logic [3:0] Q,
+    output logic signed [7:0] P
 );
 
 logic [8:0] r;              // register that contains accumulator (top 4 bits), Q (next 4 bits) and Q (last bit). Result is bits [8:1] after results
-logic signed [3:0] acc;     // accumulator, top 4 bits of result; signed because acc adds M (or -M) to itself 
+logic [3:0] acc;     // accumulator, top 4 bits of result; signed because acc adds M (or -M) to itself 
 logic [3:0] Qr;             // Qr, starts as multiplier Q inside of r
 logic Qlast;                // Qlast, the Q(-1) bit, or the last bit before Q was arithmetically shifted right
 logic signed [3:0] Mneg;    // -M
@@ -32,10 +31,8 @@ always_ff @(posedge clk) begin
     if (rst) begin
         r <= {4'b0000, Q, 1'b0};
         count <= 3'b000;
-        done <= 1'b0;
-    end else if (count == 3'b100) begin       // count is maxed, stops operations
-        done <= 1'b1;
-    end else begin
+        // $display("RESET committing r=%b", {4'b0000, 4'b1000, 1'b0});
+    end else if (count != 3'b100) begin       // count is maxed, stops operations
         r <= $signed({acc, r[4:0]}) >>> 1;    // update r with new acc, Q, Qlast, arithmetic shifted right, because ARS happens at the end of every case
         count <= count + 1;
     end
