@@ -6,30 +6,31 @@ module booth_mult (
     output logic signed [7:0] P
 );
 
-logic [8:0] r;              // register that contains accumulator (top 4 bits), Q (next 4 bits) and Q (last bit). Result is bits [8:1] after results
-logic [3:0] acc;     // accumulator, top 4 bits of result; signed because acc adds M (or -M) to itself 
+logic [9:0] r;              // register that contains accumulator (top 5 bits), Q (next 4 bits) and Q (last bit). Result is bits [8:1] after results
+logic [4:0] acc;            // accumulator, 5 bits to account for special case M = -8 (so negation of M = 8)
 logic [3:0] Qr;             // Qr, starts as multiplier Q inside of r
 logic Qlast;                // Qlast, the Q(-1) bit, or the last bit before Q was arithmetically shifted right
-logic signed [3:0] Mneg;    // -M
+logic [4:0] Mext, Mneg;     // sign-extended M and negative M (5 bits each to account for -8 -> 8)
 
 logic [2:0] count;  // count of the clock cycles (0, 1, 2, 3, 4)
 
-assign Mneg = -M;   // setting Mneg = -M, would already become signed but already declared as a signed bus
+assign Mext = {M[3], M};
+assign Mneg = -Mext;   // setting Mneg = -M, would already become signed but already declared as a signed bus
 
 always_comb begin
     Qr = r[4:1];     // Q will always be equal to 
     Qlast = r[0];
     case (r[1:0])       // different cases for Qlsb and Qlast
-        2'b00, 2'b11: acc = r[8:5];     // only ARS, registers retain values (gets ARS in always_ff)
-        2'b01: acc = r[8:5] + M;        // acc = acc + (-M); could have just done acc = acc - M but Mneg to closer match the logic I am implementing
-        2'b10: acc = r[8:5] + Mneg;     // acc = acc + M;
-        default: acc = 4'b0000;         // default case, if r = XXX (Verilator doesn't simulate this)
+        2'b00, 2'b11: acc = r[9:5];     // only ARS, registers retain values (gets ARS in always_ff)
+        2'b01: acc = r[9:5] + Mext;     // acc = acc + M; 
+        2'b10: acc = r[9:5] + Mneg;     // acc = acc + -M; could have just done acc = acc - M but Mneg to closer match the logic I am implementing
+        default: acc = 5'b00000;         // default case, if r = XXX (Verilator doesn't simulate this)
     endcase
 end
 
 always_ff @(posedge clk) begin
     if (rst) begin
-        r <= {4'b0000, Q, 1'b0};
+        r <= {5'b00000, Q, 1'b0};
         count <= 3'b000;
         // $display("RESET committing r=%b", {4'b0000, 4'b1000, 1'b0});
     end else if (count != 3'b100) begin       // count is maxed, stops operations
