@@ -18,3 +18,10 @@
 - only works up to 31 bits, as the simulator breaks at 32 bits (uses regular ints to represent the numbers). Future fix is to use int64_t/uint64_t to store larger numbers, and module should work at that range as well
 
 **shift_add_mult**: a 4-bit multiplier that uses the shift-and-add algorithm to multiply two unsigned 4-bit numbers and return an 8-bit product.
+- shift-and-add creates a partial product for every "1" in the multiplier; if there are *k* 1s, shift-and-add will do *k* operations.
+- shift-and-add also takes *n* cycles for *n*-bit inputs.
+
+**booth_mult**: a 4-bit multiplier that uses Booth's algorithm to multiply two SIGNED two's complement numbers and return an 8-bit SIGNED product.
+- uses Booth's algorithm, which acts on the transitions between 0s and 1s in the multiplier instead of acting on every "1" like shift-and-add. This is advantageous when there are long series of consecutive 1s or 0s; each "train" of 1s only needs 2 add operations.
+- however, in the worst case scenario (10101010...), Booth's algorithm actually does *double* the operations of regular shift-and-add, since it acts N times on N alternating bits but shift-and-add only acts N/2 times for each 1.
+- this implementation of Booth's algorithm also takes *n* cycles for *n*-bit inputs, much like the shift-and-add implementation.
