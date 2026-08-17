@@ -8,8 +8,6 @@ module booth_mult (
 
 logic [9:0] r;              // register that contains accumulator (top 5 bits), Q (next 4 bits) and Q (last bit). Result is bits [8:1] after results
 logic [4:0] acc;            // accumulator, 5 bits to account for special case M = -8 (so negation of M = 8)
-logic [3:0] Qr;             // Qr, starts as multiplier Q inside of r
-logic Qlast;                // Qlast, the Q(-1) bit, or the last bit before Q was arithmetically shifted right
 logic [4:0] Mext, Mneg;     // sign-extended M and negative M (5 bits each to account for -8 -> 8)
 
 logic [2:0] count;  // count of the clock cycles (0, 1, 2, 3, 4)
@@ -18,8 +16,6 @@ assign Mext = {M[3], M};
 assign Mneg = -Mext;   // setting Mneg = -M, would already become signed but already declared as a signed bus
 
 always_comb begin
-    Qr = r[4:1];     // Q will always be equal to 
-    Qlast = r[0];
     case (r[1:0])       // different cases for Qlsb and Qlast
         2'b00, 2'b11: acc = r[9:5];     // only ARS, registers retain values (gets ARS in always_ff)
         2'b01: acc = r[9:5] + Mext;     // acc = acc + M; 
