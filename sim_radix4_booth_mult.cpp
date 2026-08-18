@@ -64,17 +64,11 @@ int main(int argc, char** argv) {
 
     // === testing ===
 
-    testmult(-5, -8);
-    tick();
-
-    /*
-    for (int i = -8; i < 8; i++) {
-        for (int j = -8; j < 8; j++) {
+    for (int i = -16; i < 15; i++) {
+        for (int j = -16; j < 15; j++) {
             testmult(i, j);
         }
     }
-
-    */
 
     tfp->dump(sim_time++); // taking an extra sample so the last case has visible width
 
