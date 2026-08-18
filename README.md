@@ -25,3 +25,9 @@
 - uses Booth's algorithm, which acts on the transitions between 0s and 1s in the multiplier instead of acting on every "1" like shift-and-add. This is advantageous when there are long series of consecutive 1s or 0s; each "train" of 1s only needs 2 add operations.
 - however, in the worst case scenario (10101010...), Booth's algorithm actually does *double* the operations of regular shift-and-add, since it acts N times on N alternating bits but shift-and-add only acts N/2 times for each 1.
 - this implementation of Booth's algorithm also takes *n* cycles for *n*-bit inputs, much like the shift-and-add implementation.
+
+**radix4_booth_mult**: a 5-bit multiplier that uses radix-4 Booth's algorithm to multiply two signed two's complement numbers and return a 10-bit signed product.
+- uses the radix-4 version of Booth's algorithm to multiply two signed two's complement numbers.
+- radix-4 Booth looks at a wider window; instead of comparing bit[i] and bit[i-1], it compares bit[i] with bit[i-1] AND bit[i+1]. 
+- the radix-4 version of Booth's algorithm is used since there is no best or worst case; it will ALWAYS perform N / 2 operations, regardless of the bit values.
+- one thing to note about radix-4 Booth is that it takes half the cycles of regular Booth; since the windows are wider, each "step" is separated by 2 arithmetic right shifts instead of 1. So, the number of cycles is equal to (N rounded up to nearest even number) / 2.
