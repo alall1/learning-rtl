@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     // === variables to use in loop ===
     vluint64_t sim_time = 0;    // verilator's name for a 64-bit unsigned integer; used as a simulation timestamp that ticks upward
     int errors = 0;         // a counter for how many test cases fail
-    std::vector<int> sequence = {1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0};    // sequence to test on, needs 1 extra X at the end to see the output of the second-to-last item
+    std::vector<int> sequence = {1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0};    // sequence to test on, needs 1 extra X at the end to see the output of the second-to-last item
     std::vector<int> last4;     // last 4 seen digits in the sequence
 
     auto tick = [&]() {    // tick one clock cycle, one clk cycle = 2 waveform time units
@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
         }
 
         if (top->dout != exp_dout) {
+            errors++;
             printf("ERROR: din=%d; got dout=%d; expected dout=%d\n",
                     num, top->dout, exp_dout);
         } else {

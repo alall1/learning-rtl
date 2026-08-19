@@ -31,3 +31,8 @@
 - radix-4 Booth looks at a wider window; instead of comparing bit[i] and bit[i-1], it compares bit[i] with bit[i-1] AND bit[i+1]. 
 - the radix-4 version of Booth's algorithm is used since there is no best or worst case; it will ALWAYS perform N / 2 operations, regardless of the bit values.
 - one thing to note about radix-4 Booth is that it takes half the cycles of regular Booth; since the windows are wider, each "step" is separated by 2 arithmetic right shifts instead of 1. So, the number of cycles is equal to (N rounded up to nearest even number) / 2.
+
+**fsm_detect1011_moore**: a Moore finite state machine (FSM) that detects input patterns of 1011 (single bit inputs)
+- this FSM has 5 states: S0, S1, S10, S101, and S1011. S0 acts as the INIT/reset state, since a sequence doesn't "start" until a 1. This FSM is a Moore machine, meaning outputs ONLY depend on the current state. As such, the output of all the states is 0, except for S1011, which is the goal state.
+- note that the output is only 1 on the clock cycle AFTER the pattern is seen: for 101100, the output would be 000010. This is because the current state is the only thing affecting the output, and it changes only on clock edges.
+- one thing to note is that the pattern this FSM is looking for can overlap in input sequences; for example 1011011 is two overlapping patterns of 1011. To account for this, when a 0 is inputted and current state is S1011 OR S101, the next state will be S10 instead of S0, because both of these states are achieved when the previous input was a 1. If the next state was S0, the FSM would miss this pattern: 101011.

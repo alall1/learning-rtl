@@ -19,8 +19,8 @@ always_comb begin
     case (state)
         S0: next_state = din ? S1 : S0;         // next state = S1 if input = 1, S0 if input = 0
         S1: next_state = din ? S1 : S10;        // next state = S1 if input = 1, S10 if input = 0
-        S10: next_state = din ? S101 : S0;      // next state = S101 if input = 1, S0 if input = 0
-        S101: next_state = din ? S1011 : S0;    // next state = S1011 if input = 1, S0 if input = 0
+        S10: next_state = din ? S101 : S10;      // next state = S101 if input = 1, S0 if input = 0
+        S101: next_state = din ? S1011 : S10;    // next state = S1011 if input = 1, S0 if input = 0
         S1011: next_state = din ? S1 : S10;     // next state = S1 if input = 1, S10 if input = 0 because overlapping sequences of 1011 counnt (e.g. 1011011 = 00001001)
         default: next_state = S0;
     endcase
