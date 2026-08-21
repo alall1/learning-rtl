@@ -48,3 +48,12 @@
 
 	<img width="455" height="326" alt="fsm_state_1011mealy" src="https://github.com/user-attachments/assets/181c3fa9-e066-4cf0-a063-1a5e1ad5f8d6" />
 
+**fsm_stream_control**: a simple valid/ready streaming controller, similar to flow-control interfaces used between blocks in pipelined RTL systems; uses a one-byte internal buffer to temporarily store data
+- this FSM has 2 states: EMPTY and FULL. EMPTY is a state where the controller isn't holding valid data; this could be either before it receives any data or after it receives data and passes it downstream. FULL is a state where the controller is holding valid data that hasn't been passed downstream again.
+- the valid/ready handshake guarantees that data is only accepted or transmitted when the corresponding valid/ready handshake succeeds (in or out), preventing duplication or overwriting.
+- push (upstream valid/ready handshake succeeds) decides if EMPTY -> FULL, and pop (downstream valid/ready handshake succeeds) decides if FULL -> EMPTY.
+- this version is a Moore FSM, since the FSM outputs depend only on the current state, not directly on the inputs.
+- state diagram below:
+
+	<img width="460" height="181" alt="fsm_stream_control" src="https://github.com/user-attachments/assets/eee76417-5464-42d4-8e1b-487c9f363126" />
+
