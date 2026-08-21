@@ -21,12 +21,14 @@ int main(int argc, char** argv) {
     // === variables to use in loop ===
     vluint64_t sim_time = 0;    // verilator's name for a 64-bit unsigned integer; used as a simulation timestamp that ticks upward
     int errors = 0;             // a counter for how many test cases fail
-    std::vector<int> in_valid  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};    // in_valid waveform (changes on negedge clk, halfway through clock cycles)
-    std::vector<int> out_ready = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};    // out_ready waveform
+    
+    std::vector<int> in_valid  = {0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0};    // in_valid waveform (changes on negedge clk, halfway through clock cycles)
+    std::vector<int> out_ready = {0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1};    // out_ready waveform
     std::vector<int> in_data   = {14, 2, 253, 47};
     int data_ind = 0;           // index of in_data, incremented only when in_valid & in_ready are both 1 on a clock cycle
     int state = 0;              // current state for simulator, 0 = EMPTY, 1 = FULL
     int exp_out_data = 0;
+    int count = 0;
 
     // === helper functions ===
     auto tick = [&]() {    // tick one clock cycle, one clk cycle = 2 waveform time units
@@ -40,26 +42,10 @@ int main(int argc, char** argv) {
     };
 
     // === testing ===
-    dut->rst = 1'b1;
+    dut->rst = 1;
     tick();
-    dut->rst = 1'b0;
+    dut->rst = 0;
     tick();
-
-    for (int i = 0; i < in_valid.size(); i++) {
-        // pre-posedge clk
-        if (state == 0 && in_valid[i]) {
-            state == 1;
-            exp_out_data = in_data[data_ind];
-            data_ind++;
-        } else if (state == 1 && out_ready[i]) { 
-            state == 0;
-        }
-
-        tick();
-
-        // post-posedge clk
-        if (state )
-    }
 
     for (int i = 0; i < in_valid.size(); i++) {
         dut->in_valid  = in_valid[i];
@@ -130,6 +116,7 @@ int main(int argc, char** argv) {
             );
             errors++;
         }
+        count++;
     }
 
     tfp->dump(sim_time++); // taking an extra sample so the last case has visible width
@@ -139,7 +126,7 @@ int main(int argc, char** argv) {
     delete dut;     // free the memory allocated with "new"
 
     // === final report ===
-    if (errors == 0) printf("\nAll test cases passed.\n");
+    if (errors == 0) printf("\nAll %d test cases passed.\n", count);
     else printf("\n%d test case(s) failed.\n", errors);
 
     return errors ? 1 : 0; // return 0 if no errors, or 1 if there were.

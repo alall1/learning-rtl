@@ -33,6 +33,7 @@ assign push = in_valid && in_ready;
 assign pop = out_valid && out_ready;
 
 logic state;    // 0 = empty, 1 = full
+logic next_state;
 
 // state register
 always_ff @(posedge clk) begin
@@ -52,7 +53,7 @@ always_comb begin
         in_ready = 1'b1;
         out_valid = 1'b0;
     end else begin              // if full
-        in_read = 1'b0;
+        in_ready = 1'b0;
         out_valid = 1'b1;
     end
 end
