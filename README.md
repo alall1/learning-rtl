@@ -57,3 +57,6 @@
 
 	<img width="460" height="181" alt="fsm_stream_control" src="https://github.com/user-attachments/assets/eee76417-5464-42d4-8e1b-487c9f363126" />
 
+- a Yosys/Graphviz visualization of fsm_stream_control:
+
+	<img width="500" height="529" alt="vis_fsm_stream_control" src="https://github.com/user-attachments/assets/5b821315-3a7f-42b6-a0cc-cc71c2126b9b" />
