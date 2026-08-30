@@ -1,3 +1,10 @@
 obj_dir/
 *.vcd
+*.fst
 *.ys
+*.gtkw
+results.xml
+.python-version
+venv/
+sim_build/
+.DS_Store
