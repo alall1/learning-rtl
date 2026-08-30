@@ -1,5 +1,5 @@
-module fifo #(
-    parameter DEPTH = 4,
+module sync_fifo #(
+    parameter DEPTH = 8,
     parameter DATA_WIDTH = 8
 )(
     input logic clk,
@@ -31,7 +31,7 @@ always_ff @(posedge clk or posedge rst) begin
             if (full) begin     // FIFO full
                 wr_ptr <= wr_ptr;
             end else begin
-                if (wr_ptr == DEPTH - 1) begin
+                if (wr_ptr == PTR_WIDTH'(DEPTH - 1)) begin
                     wr_ptr[PTR_WIDTH-2:0] <= '0;
                     wr_ptr[PTR_WIDTH-1] <= ~wr_ptr[PTR_WIDTH-1];
                 end else begin
@@ -43,8 +43,9 @@ always_ff @(posedge clk or posedge rst) begin
         if (rd) begin
             if (empty) begin    // FIFO empty
                 rd_ptr <= rd_ptr;
+                read_data <= '0;
             end else begin
-                if (rd_ptr == DEPTH - 1) begin
+                if (rd_ptr == PTR_WIDTH'(DEPTH - 1)) begin
                     rd_ptr[PTR_WIDTH-2:0] <= '0;
                     rd_ptr[PTR_WIDTH-1] <= ~rd_ptr[PTR_WIDTH-1];
                 end else begin
