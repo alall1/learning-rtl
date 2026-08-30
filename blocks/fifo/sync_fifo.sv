@@ -13,6 +13,7 @@ module sync_fifo #(
 );
 
 localparam int PTR_WIDTH = $clog2(DEPTH) + 1;   // calculating the number of bits the pointers should have, + 1 for the 'wrap' bit
+localparam int ADDR_WIDTH = PTR_WIDTH - 1;      // calculating the number of ADDRESS bits the pointers have
 
 logic [DATA_WIDTH-1:0] mem [0:DEPTH-1];         // initializing the element storage
 
@@ -31,8 +32,8 @@ always_ff @(posedge clk or posedge rst) begin
             if (full) begin     // FIFO full
                 wr_ptr <= wr_ptr;
             end else begin
-                if (wr_ptr == PTR_WIDTH'(DEPTH - 1)) begin
-                    wr_ptr[PTR_WIDTH-2:0] <= '0;
+                if (wr_ptr[ADDR_WIDTH-1:0] == ADDR_WIDTH'(DEPTH - 1)) begin
+                    wr_ptr[ADDR_WIDTH-1:0] <= '0;
                     wr_ptr[PTR_WIDTH-1] <= ~wr_ptr[PTR_WIDTH-1];
                 end else begin
                     wr_ptr <= wr_ptr + 1;
@@ -45,13 +46,13 @@ always_ff @(posedge clk or posedge rst) begin
                 rd_ptr <= rd_ptr;
                 read_data <= '0;
             end else begin
-                if (rd_ptr == PTR_WIDTH'(DEPTH - 1)) begin
-                    rd_ptr[PTR_WIDTH-2:0] <= '0;
+                if (rd_ptr[ADDR_WIDTH-1:0] == ADDR_WIDTH'(DEPTH - 1)) begin
+                    rd_ptr[ADDR_WIDTH-1:0] <= '0;
                     rd_ptr[PTR_WIDTH-1] <= ~rd_ptr[PTR_WIDTH-1];
                 end else begin
                     rd_ptr <= rd_ptr + 1;
                 end
-                read_data <= mem[rd_ptr[PTR_WIDTH-2:0]];
+                read_data <= mem[rd_ptr[ADDR_WIDTH-1:0]];
             end
         end
     end

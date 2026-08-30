@@ -12,7 +12,7 @@ VERILOG_SOURCES += sync_fifo.sv
 TOPLEVEL = sync_fifo
 COCOTB_TEST_MODULES = test_sync_fifo
 
-COMPILE_ARGS += -GDEPTH=6 -GDATA_WIDTH=8
+COMPILE_ARGS += -GDEPTH=13 -GDATA_WIDTH=8
 EXTRA_ARGS   += --trace --trace-structs
  
 ifeq ($(WAVES),1)

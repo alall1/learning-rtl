@@ -98,21 +98,20 @@ async def step(dut, model: Queue, wr: int, rd: int, data_width: int, write_data:
     dut.write_data.value = to_unsigned(write_data, data_width)
     read_valid = not model.isEmpty()
     if wr: model.write(write_data)  # writing to model
-    if rd and read_valid: exp_read_data = model.read()
+    if rd and read_valid: exp_read_data = to_unsigned(model.read(), data_width)
 
     await RisingEdge(dut.clk)
     await Timer(1, unit="ns")  # settle past the edge before anyone samples
 
-    dut_read_data = to_signed(int(dut.read_data.value), data_width)
+    dut_read_data = int(dut.read_data.value)
     dut_empty = int(dut.empty.value)
     dut_full = int(dut.full.value)
 
     prefix = f"[{ctx}] " if ctx else ""
     if rd and read_valid:
-        assert dut_read_data == exp_read_data, (f"{prefix}read_data: dut={dut_read_data} exp={model.exp_read_data}")
+        assert dut_read_data == exp_read_data, (f"{prefix}read_data: dut={dut_read_data} exp={exp_read_data}")
     assert dut_empty == model.isEmpty(), (f"{prefix}empty: dut={dut_empty} exp={model.isEmpty()}")
     assert dut_full == model.isFull(), (f"{prefix}full: dut={dut_full} exp={model.isFull()}")
-
 
 # --------------------------------------------------------------------------- #
 # tests
@@ -223,12 +222,14 @@ async def test_simultaneous(dut):
     while not model.isEmpty():
         await step(dut, model, wr=0, rd=1, data_width=data_width, ctx="read")
 
-'''
 @cocotb.test()
-async def test_random_regression(dut):
-    """Randomized valid/bubble mix"""
-    data_width, acc_width = get_params(dut)
-    model = PEModel(data_width, acc_width)
+async def test_wraparound_laps(dut):
+    """
+    Drive interleaved writes/reads across multiple laps so the pointer wraps while the wrap bit is set. Exposes wrap-bit comparison bug (comparing the full pointer to DEPTH, instead of comparing only the address bits of the pointer),
+    which only manifests after >2*DEPTH cumulative writes. Requires a non-power-of-two DEPTH to catch it (power-of-two hides it via natural overflow) — run this with DEPTH=6.
+    """
+    depth, data_width = get_params(dut)
+    model = Queue(depth)
 
     await start_clock(dut)
     await reset_dut(dut)
@@ -236,16 +237,55 @@ async def test_random_regression(dut):
     await Timer(1, unit="ns")
     model.reset()
 
-    lo = -(1 << (data_width - 1))
-    hi = (1 << (data_width - 1)) - 1
+    # Enough cumulative writes to lap the pointer at least 3 times: keep the FIFO partially filled so both pointers keep advancing.
+    # Pattern: write 2, read 1, repeat. Net +1 per iteration until near full, with steady pointer motion through many wraps.
+    val = 0
+    total_writes = 0
+    target_writes = 4 * depth + 2   # comfortably past 2*DEPTH, into 3rd+ lap
 
-    for i in range(500):
-        a = random.randint(lo, hi)
-        b = random.randint(lo, hi)
-        a_v = 1 if random.random() < 0.8 else 0
-        b_v = 1 if random.random() < 0.8 else 0
-        f = 1 if random.random() < 0.8 else 0
-        await step(dut, a, b, in_a_valid = a_v, in_b_valid=b_v, in_first=f, data_width=data_width)
-        model.step(a, b, in_a_valid = a_v, in_b_valid=b_v, in_first=f)
-        check(dut, model, data_width, acc_width, ctx=f"rand[{i}]")
-'''
+    while total_writes < target_writes:
+        # write if not full
+        if not model.isFull():
+            val = (val + 1) & ((1 << data_width) - 1)
+            await step(dut, model, wr=1, rd=0, data_width=data_width,
+                       write_data=val, ctx=f"w{total_writes}")
+            total_writes += 1
+        # read if not empty (drain one to keep pointers moving)
+        if not model.isEmpty():
+            await step(dut, model, wr=0, rd=1, data_width=data_width,
+                       ctx=f"r{total_writes}")
+
+    # drain and confirm ordering intact after all the wrapping.
+    while not model.isEmpty():
+        await step(dut, model, wr=0, rd=1, data_width=data_width, ctx="drain")
+
+@cocotb.test()
+async def test_random(dut):
+    """
+    Randomized test: drive random wr/rd each cycle over many cycles, checking read_data, full, and empty against the golden model every edge.
+    Catches wrap bugs at arbitrary addresses, corner cases at full/empty, and simultaneous rd+wr interactions. Run with a non-power-of-two DEPTH
+    (e.g. 6) to also exercise the wrap-bit path.
+    """
+    depth, data_width = get_params(dut)
+    model = Queue(depth)
+
+    NUM_CYCLES = 5000
+    seed = random.randrange(1 << 32)
+    random.seed(seed)
+    dut._log.info(f"test_random seed={seed} depth={depth} data_width={data_width}")
+
+    await start_clock(dut)
+    await reset_dut(dut)
+    await RisingEdge(dut.clk)
+    await Timer(1, unit="ns")
+    model.reset()
+
+    mask = (1 << data_width) - 1
+    val = 0
+
+    for i in range(NUM_CYCLES):
+        wr = random.randint(0, 1)
+        rd = random.randint(0, 1)
+        # fresh, unique-ish data each write so ordering errors are visible
+        val = (val + 1) & mask
+        await step(dut, model, wr=wr, rd=rd, data_width=data_width, write_data=val, ctx=f"rand#{i} wr={wr} rd={rd}")
