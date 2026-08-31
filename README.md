@@ -1,7 +1,7 @@
 # learning-rtl
 
+### arithmetic
 **carry_in_adder**: a basic 1-bit adder that takes in two 1-bit adders plus a carry-in and returns the sum and a carry-out.
-
 
 **ripple_adder_4bit**: a ripple-carry 4-bit adder that does not take in a carry-in but returns a sum and carry-out.
 - used *carry_in_adder* for this module
@@ -32,6 +32,7 @@
 - the radix-4 version of Booth's algorithm is used since there is no best or worst case; it will ALWAYS perform N / 2 operations, regardless of the bit values.
 - one thing to note about radix-4 Booth is that it takes half the cycles of regular Booth; since the windows are wider, each "step" is separated by 2 arithmetic right shifts instead of 1. So, the number of cycles is equal to (N rounded up to nearest even number) / 2.
 
+### fsms
 **fsm_detect1011_moore**: a Moore finite state machine (FSM) that detects input patterns of 1011 (single bit inputs)
 - this FSM has 5 states: S0, S1, S10, S101, and S1011. S0 acts as the INIT/reset state, since a sequence doesn't "start" until a 1. This FSM is a Moore machine, meaning outputs ONLY depend on the current state. As such, the output of all the states is 0, except for S1011, which is the goal state.
 - note that the output is only 1 on the clock cycle AFTER the pattern is seen: for 101100, the output would be 000010. This is because the current state is the only thing affecting the output, and it changes only on clock edges.
@@ -60,3 +61,9 @@
 - a Yosys/Graphviz visualization of fsm_stream_control:
 
 	<img width="500" height="529" alt="vis_fsm_stream_control" src="https://github.com/user-attachments/assets/5b821315-3a7f-42b6-a0cc-cc71c2126b9b" />
+
+### blocks
+**sync_fifo**: a parameterizable synchronous first-in, first-out (FIFO) buffer which has variable depth and data width; used to 'decouple' consumer from producer by "absorbing" the slack of a slow consumer (appending produced data into a queue) without stalling the producer or dropping data
+- made up of 1. a block of memory, where elements are stored, 2. a write pointer, the index of the next slot to write into, and 3. a read pointer, the index of the next slot to read from. On a write, the write data is stored at mem[wr_ptr], and wr_ptr is incremented by 1. On a read, the data stored at mem[rd_ptr] is read and rd_ptr is incremented. Both pointers wrap around to zero when they "run off" the end. Writes and reads can happen on the same clock edge; however, when the buffer is empty, reading and writing simultaneously will write a value, but not read it, and when the buffer is full, reading and writing simultaneously will only read the value, not write the new one.
+- to differentiate between a full state and empty state, a wrap bit was added to both pointers; an extra bit that flips each time a pointer wraps around to zero. The buffer is full when the address bits of the pointers are equal, but the wrap bits of the pointers are different (wr_ptr is essentially a full lap ahead of rd_ptr), and writes can no longer happen; and empty when all bits of the pointers are equal (wr_ptr == rd_ptr), and reads can no longer happen.
+- full and empty flags are also exposed as outputs, because producers writing into the buffer must know when to stall instead of trying to write data to a full buffer, and consumers reading from the buffer must know when to stall instead of reading and computing on non-existent values. "almost-full" and "almost-empty" flags are exposed in many other designs, because producers/consumers may need a few cycles of warning before they stall; however, this design doesn't have them.
