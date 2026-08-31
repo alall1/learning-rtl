@@ -8,3 +8,4 @@ results.xml
 venv/
 sim_build/
 .DS_Store
+__pycache__/
