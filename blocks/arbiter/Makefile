@@ -7,15 +7,17 @@
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-VERILOG_SOURCES += sync_fifo.sv
+VERILOG_SOURCES += fixed_arbiter.sv
 
-TOPLEVEL = sync_fifo
-COCOTB_TEST_MODULES = test_sync_fifo
+TOPLEVEL = fixed_arbiter
+COCOTB_TEST_MODULES = test_fixed_arbiter
 
-COMPILE_ARGS += -GDEPTH=13 -GDATA_WIDTH=8
+N ?= 4
+
+COMPILE_ARGS += -GN=$(N)
 EXTRA_ARGS   += --trace --trace-structs
  
-ifeq ($(WAVES),1)
+ifeq ($(WAVES), 1)
     export COCOTB_TRACE = 1
 endif
  
