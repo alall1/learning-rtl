@@ -31,4 +31,9 @@ model.step(8, 1)
 print(f"5. grant: {model.grant}, locked: {model.locked}")
 model.step(15, 1)
 print(f"6. grant: {model.grant}, locked: {model.locked}")
+model.step(0, 0)
+print(f"7. grant: {model.grant}, locked: {model.locked}")
+model.step(0, 1)
+print(f"8. grant: {model.grant}, locked: {model.locked}")
+
 
