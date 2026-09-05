@@ -92,7 +92,7 @@ async def step(dut, model: Arbiter, request_bus: int, ack: int = 0, ctx: str = "
 
 @cocotb.test()
 async def test_reset(dut):
-    """After reset, read_data and full = 0, empty = 1"""
+    """After reset, locked = 0 and grant_bus = 0"""
     await start_clock(dut)
     await reset_dut(dut)
     await RisingEdge(dut.clk)
