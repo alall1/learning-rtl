@@ -13,9 +13,9 @@ TOPLEVEL = sync_fifo
 COCOTB_TEST_MODULES = test_sync_fifo
 
 COMPILE_ARGS += -GDEPTH=13 -GDATA_WIDTH=8
-EXTRA_ARGS   += --trace --trace-structs
  
-ifeq ($(WAVES),1)
+ifeq ($(WAVES), 1)
+	EXTRA_ARGS   += --trace --trace-structs
     export COCOTB_TRACE = 1
 endif
  

@@ -1,4 +1,4 @@
-# cocotb Makefile for "sync_fifo" module
+# cocotb Makefile for "fixed_arbiter" module
 #
 #   make                 # run
 #   make WAVES=1         # run + dump waves for GTKWave
@@ -15,9 +15,9 @@ COCOTB_TEST_MODULES = test_fixed_arbiter
 N ?= 4
 
 COMPILE_ARGS += -GN=$(N)
-EXTRA_ARGS   += --trace --trace-structs
  
 ifeq ($(WAVES), 1)
+	EXTRA_ARGS   += --trace --trace-structs
     export COCOTB_TRACE = 1
 endif
  

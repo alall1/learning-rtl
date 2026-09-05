@@ -33,6 +33,7 @@ class Arbiter:
         if request_bus > (2 ** (self.N)) - 1: raise ValueError("request_bus out of range")
         if (ack):
             self.locked = 0
+            self.grant = 0
         if request_bus != 0 and self.locked == 0:
             i = request_bus.bit_length() - 1    # index of granter
             self.grant = 1 << i
@@ -101,6 +102,22 @@ async def test_reset(dut):
     assert int(dut.locked.value) == 0
 
 @cocotb.test()
+async def test_empty_request(dut):
+    """Testing consecutive empty requests"""
+    N = get_params(dut)
+    model = Arbiter(N)
+
+    await start_clock(dut)
+    await reset_dut(dut)
+    await RisingEdge(dut.clk)
+    await Timer(1, unit="ns")
+
+    NUM_CYCLES = 10
+
+    for i in range(NUM_CYCLES):
+        await step(dut, model, request_bus=0, ack=1, ctx=f"empty-req#{i}")
+
+@cocotb.test()
 async def test_request_ack(dut):
     """Assert grant, hold for a few cycles, then ack; one time"""
     N = get_params(dut)
@@ -125,7 +142,7 @@ async def test_request_ack(dut):
     await step(dut, model, request_bus=0, ack=1, ctx="ack")    # no requests, ack asserted -> locked = 0
 
 @cocotb.test()
-async def test_consec_request(dut):
+async def test_simultaneous_req_ack(dut):
     """Testing consecutive requests + acks"""
     N = get_params(dut)
     model = Arbiter(N)
@@ -135,40 +152,29 @@ async def test_consec_request(dut):
     await RisingEdge(dut.clk)
     await Timer(1, unit="ns")
 
-    NUM_CYCLES = 50
+    NUM_CYCLES = 10
 
     max = (2 ** N) - 1
     for i in range(NUM_CYCLES):
         req_bus = random.randint(1, max)    # random integer between 1 and 2^N - 1; always asserting a request
         await step(dut, model, request_bus=req_bus, ack=1, ctx=f"req-ack#{i}")     # requests come in as req_bus
 
-# @cocotb.test()
-# async def test_random(dut):
-#     """
-#     Randomized test: drive random wr/rd each cycle over many cycles, checking read_data, full, and empty against the golden model every edge.
-#     Catches wrap bugs at arbitrary addresses, corner cases at full/empty, and simultaneous rd+wr interactions. Run with a non-power-of-two DEPTH
-#     (e.g. 6) to also exercise the wrap-bit path.
-#     """
-#     depth, data_width = get_params(dut)
-#     model = Queue(depth)
+@cocotb.test()
+async def test_random(dut):
+    """Testing random inputs"""
+    N = get_params(dut)
+    model = Arbiter(N)
 
-#     NUM_CYCLES = 5000
-#     seed = random.randrange(1 << 32)
-#     random.seed(seed)
-#     dut._log.info(f"test_random seed={seed} depth={depth} data_width={data_width}")
+    await start_clock(dut)
+    await reset_dut(dut)
+    await RisingEdge(dut.clk)
+    await Timer(1, unit="ns")
 
-#     await start_clock(dut)
-#     await reset_dut(dut)
-#     await RisingEdge(dut.clk)
-#     await Timer(1, unit="ns")
-#     model.reset()
+    NUM_CYCLES = 100
 
-#     mask = (1 << data_width) - 1
-#     val = 0
+    max = (2 ** N) - 1
 
-#     for i in range(NUM_CYCLES):
-#         wr = random.randint(0, 1)
-#         rd = random.randint(0, 1)
-#         # fresh, unique-ish data each write so ordering errors are visible
-#         val = (val + 1) & mask
-#         await step(dut, model, wr=wr, rd=rd, data_width=data_width, write_data=val, ctx=f"rand#{i} wr={wr} rd={rd}")
+    for i in range(NUM_CYCLES):
+        ack = random.randint(0, 1)          # random chance of 0 or 1
+        req_bus = random.randint(0, max)    # random integer between 0 and 2^N - 1; could be empty
+        await step(dut, model, request_bus=req_bus, ack=ack, ctx=f"rand#{i}")     # requests come in as req_bus
