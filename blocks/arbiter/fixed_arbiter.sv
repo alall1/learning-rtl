@@ -25,13 +25,9 @@ always_ff @(posedge clk or posedge rst) begin
         grant_bus <= '0;
         locked <= 1'b0;
     end else if (ack) begin
-        if (|request_bus) begin
-            grant_bus <= grant_next;
-            locked <= 1'b1;
-        end else begin
-            locked <= 1'b0;    // granted master done; re-arbitrate
-            grant_bus <= '0;
-        end
+        grant_bus <= grant_next;
+        if (|request_bus) locked <= 1'b1;
+        else locked <= 1'b0;
     end else if (|request_bus && ~locked) begin
         grant_bus <= grant_next;
         locked <= 1'b1;

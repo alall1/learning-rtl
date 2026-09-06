@@ -7,10 +7,10 @@
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-VERILOG_SOURCES += fixed_arbiter.sv
+VERILOG_SOURCES += round_robin_arbiter.sv
 
-TOPLEVEL = fixed_arbiter
-COCOTB_TEST_MODULES = test_fixed_arbiter
+TOPLEVEL = round_robin_arbiter
+COCOTB_TEST_MODULES = test_round_robin_arbiter
 
 N ?= 4
 

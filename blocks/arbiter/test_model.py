@@ -53,23 +53,25 @@ class roundRobinArbiter:
         grant_unmasked = self.unmasked.grant
 
         if self.locked == 0:
-            self.grant = grant_masked if request_bus & self.mask else grant_unmasked
-            self.locked = 1
+            if request_bus:
+                self.mask = self.grant - 1
+                self.locked = 1
+                self.grant = grant_masked
+            else:
+                self.grant = grant_unmasked
 
-        self.mask = self.grant - 1
-
-# model = roundRobinArbiter(4)
-# model.step(15, 1)
-# print(f"1. grant: {model.grant}, locked: {model.locked}")
-# model.step(15, 1)
-# print(f"2. grant: {model.grant}, locked: {model.locked}")
-# model.step(12, 1)
-# print(f"3. grant: {model.grant}, locked: {model.locked}")
-# model.step(15, 1)
-# print(f"4. grant: {model.grant}, locked: {model.locked}")
-# model.step(15, 1)
-# print(f"5. grant: {model.grant}, locked: {model.locked}")
-# model.step(15, 1)
-# print(f"6. grant: {model.grant}, locked: {model.locked}")
-# model.step(15, 1)
-# print(f"7. grant: {model.grant}, locked: {model.locked}")
+model = roundRobinArbiter(4)
+model.step(15, 1)
+print(f"1. grant: {model.grant}, locked: {model.locked}")
+model.step(15, 1)
+print(f"2. grant: {model.grant}, locked: {model.locked}")
+model.step(0, 1)
+print(f"3. grant: {model.grant}, locked: {model.locked}")
+model.step(0, 1)
+print(f"4. grant: {model.grant}, locked: {model.locked}")
+model.step(15, 1)
+print(f"5. grant: {model.grant}, locked: {model.locked}")
+model.step(15, 1)
+print(f"6. grant: {model.grant}, locked: {model.locked}")
+model.step(15, 1)
+print(f"7. grant: {model.grant}, locked: {model.locked}")
