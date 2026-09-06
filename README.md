@@ -72,3 +72,15 @@
 - number of requesters *N* is parameterizable, changes the size of request_bus and grant_bus. Signal grant_next is driven by combinational logic, and output grant_bus is a register, driven by sequential logic deciding whether to re-arbitrate this cycle, or continue asserting grant.
 - signal "locked" is asserted by the arbiter while asserting a grant to a requester; only when signal "ack" is asserted by the granted master does locked de-assert. However, if there are non-zero requesters AND "ack" is asserted on the same cycle, locked stays asserted, but the arbiter re-arbitrates and the granted requester updates.
 - with a fixed-priority arbiter, starvation is a real issue; if the top-priority requester requests every cycle, the rest of the requesters will never be served. This locks out every other requester, which may be okay when the fixed priorities genuinely reflect importance, but bad when requesters are of similar priority.
+
+**round_robin_arbiter**: a parameterizable round-robin arbiter that takes in requests in the form of a request_bus, each bit corresponding to a requester, and asserts a single grant to the highest priority requester (during that cycle) for multiple cycles until the granted master finishes and asserts ack; surfaces "locked" while asserting a grant
+- number of requesters is parameterizable, and changes the size of request_bus and grant_bus. Output is a register that is driven by sequential logic deciding whether to re-arbitrate this cycle or continue asserting grant.
+- to avoid the starvation problem of fixed-priority arbiters, this design has a round-robin priority scheme. After a reset, the MSB is the highest priority requester, descending to the lowest priority requester at the LSB. However, when a certain requester is granted, the priority order is circled around (still in order), now starting at the requester exactly 1 bit AFTER the requester that was granted last cycle. So, the requester that was previously granted falls to the lowest priority.
+	- example: 
+		- priority order pre-clock-edge: 3, 2, 1, 0; requester 2 is granted
+		- priority order post-clock-edge: 1, 0, 3, 2
+	- another example:
+		- priority order pre-clock-edge: 3, 2, 1, 0; requester 0 is granted
+		- priority order post-clock-edge: 3, 2, 1, 0
+	- note how if the lowest-priority requester is granted on a cycle, the order stays the same, because it continues to be the lowest-priority requester
+- this avoids starvation because in the worst case a requester waits `N - 1` cycles before its turn comes up. Every requester, at some point, becomes highest priority. The cost of this round-robin arbiter is simply more logic. 
